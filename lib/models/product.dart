@@ -1,12 +1,14 @@
 class Product {
-  final int? id;
+  int? id;  // Removed final
   final String name;
   final int quantity;
+  final double? price;
 
   Product({
     this.id,
     required this.name,
     required this.quantity,
+    this.price
   });
 
   // Convert a Product into a Map
@@ -15,6 +17,7 @@ class Product {
       'id': id,
       'name': name,
       'quantity': quantity,
+      'price': price,  // ADDED price here
     };
   }
 
@@ -24,6 +27,7 @@ class Product {
       id: map['id'],
       name: map['name'],
       quantity: map['quantity'],
+      price: map['price'],  // ADDED price here
     );
   }
 }

@@ -1,35 +1,42 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../models/product.dart';
-import '../helpers/database_helper.dart'; // Import DatabaseHelper
+import '../repositories/product_repository.dart';
 
 class ProductViewModel extends ChangeNotifier {
-  // List to store products
-  List<Product> _products = [];
+  final ProductRepository _repository = ProductRepository();
 
+  List<Product> _products = [];
   List<Product> get products => _products;
 
-  // Load products from the database
   Future<void> loadProducts() async {
-    _products = await DatabaseHelper().getAllProducts();
-    notifyListeners(); // Notify listeners that the data has changed
+    _products = await _repository.fetchAll();
+    notifyListeners();
   }
 
-  // Add a product to the database
-  Future<void> addProduct(String name, int quantity) async {
-    final product = Product(name: name, quantity: quantity);
-    await DatabaseHelper().insertProduct(product);
-    await loadProducts(); // Reload products after adding a new one
+  Future<void> addProduct(Product product) async {
+    final insertedId = await _repository.insert(product);
+    final newProduct = await _repository.fetchById(insertedId);
+    if (newProduct != null) {
+      _products.insert(0, newProduct); // Add to top of the list
+      notifyListeners();
+    }
   }
 
-  // Update a product in the database
-  Future<void> updateProduct(Product product) async {
-    await DatabaseHelper().updateProduct(product);
-    await loadProducts(); // Reload products after updating
-  }
-
-  // Delete a product from the database
   Future<void> deleteProduct(int id) async {
-    await DatabaseHelper().deleteProduct(id);
-    await loadProducts(); // Reload products after deletion
+    await _repository.delete(id);
+    _products.removeWhere((p) => p.id == id); // Remove from local list
+    notifyListeners();
   }
+
+  Future<void> updateProduct(Product product) async {
+    final updated = await _repository.update(product);
+    if (updated > 0) {
+      final index = _products.indexWhere((p) => p.id == product.id);
+      if (index != -1) {
+        _products[index] = product; // Replace in-place
+        notifyListeners();
+      }
+    }
+  }
+
 }
