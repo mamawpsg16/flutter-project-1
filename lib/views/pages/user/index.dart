@@ -39,9 +39,11 @@ class _UserViewState extends State<UserView> {
   void initState() {
     super.initState();
 
-    // Safe way to trigger after build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<UserViewModel>(context, listen: false).loadUsers();
+    // Use Future.microtask to schedule the loadUsers call after the current build is complete
+    Future.microtask(() {
+      if (mounted) {
+        Provider.of<UserViewModel>(context, listen: false).loadUsers();
+      }
     });
   }
 
@@ -104,9 +106,7 @@ class _UserViewState extends State<UserView> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: userVM.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : filteredUsers.isEmpty
+          child: filteredUsers.isEmpty
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

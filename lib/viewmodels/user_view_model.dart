@@ -4,19 +4,12 @@ import '../repositories/user_repository.dart';
 
 class UserViewModel extends ChangeNotifier {
   final UserRepository _repository = UserRepository();
-  bool isLoading = true;
 
   List<User> _users = [];
   List<User> get users => _users;
 
-  Future<void> loadUsers() async {
-    isLoading = true;
-    notifyListeners();
-
-    await Future.delayed(const Duration(seconds: 2)); // Fake delay
+   Future<void> loadUsers() async {
     _users = await _repository.fetchAll();
-
-    isLoading = false;
     notifyListeners();
   }
 
