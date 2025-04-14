@@ -4,6 +4,7 @@ import '../../../viewmodels/user_view_model.dart';
 import 'add.dart';
 import 'edit.dart';
 import 'dart:io';
+import '../../../models/user.dart';
 
 class UserView extends StatefulWidget {
   const UserView({super.key});
@@ -169,8 +170,8 @@ class _UserViewState extends State<UserView> {
 }
 
 class UserCard extends StatelessWidget {
-  final dynamic user;
-  final Function(String?) getProfileImage;
+  final User user;
+  final ImageProvider Function(String?) getProfileImage;
 
   const UserCard({
     super.key,
@@ -180,16 +181,15 @@ class UserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16), // Apply the same radius here
+      borderRadius: BorderRadius.circular(16),
       child: GestureDetector(
         onTap: () {
-          // Navigate to EditUserView and pass the user
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => EditUserView(user: user),
-            ),
+            MaterialPageRoute(builder: (context) => EditUserView(user: user)),
           );
         },
         child: Card(
@@ -203,89 +203,119 @@ class UserCard extends StatelessWidget {
             children: [
               Expanded(
                 flex: 3,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16),
-                    ),
-                  ),
-                  child: Center(
-                    child: Hero(
-                      tag: 'user-${user.id}',
-                      child: CircleAvatar(
-                        radius: 55,
-                        backgroundColor: Colors.white,
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundImage: getProfileImage(user.profileImage),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                child: _ProfileImage(user: user, getProfileImage: getProfileImage),
               ),
-             Expanded(
+              Expanded(
                 flex: 2,
-                child: Stack(
-                  children: [
-                    // Center the whole column content
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              user.email,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                user.role,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.secondary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Overlay icon in top-right corner
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: Icon(
-                        user.isActive ? Icons.check_circle : Icons.cancel,
-                        color: user.isActive ? Colors.green : Colors.red,
-                        size: 20,
-                      ),
-                    ),
-                  ],
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: _UserDetails(user: user),
+                  ),
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+
+
+class _ProfileImage extends StatelessWidget {
+  final dynamic user;
+  final ImageProvider Function(String?) getProfileImage;
+
+  const _ProfileImage({
+    required this.user,
+    required this.getProfileImage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withOpacity(0.5),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
+      child: Center(
+        child: Hero(
+          tag: 'user-${user.id}',
+          child: CircleAvatar(
+            radius: 55,
+            backgroundColor: Colors.white,
+            child: CircleAvatar(
+              radius: 50,
+              backgroundImage: getProfileImage(user.profileImage),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UserDetails extends StatelessWidget {
+  final dynamic user;
+
+  const _UserDetails({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                user.email,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              user.isActive ? Icons.check_circle : Icons.cancel,
+              color: user.isActive ? Colors.green : Colors.red,
+              size: 20,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: colorScheme.secondary.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            user.role,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: colorScheme.secondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }
