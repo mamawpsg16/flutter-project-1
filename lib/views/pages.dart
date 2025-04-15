@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'pages/product/index.dart';
 import 'pages/user/index.dart';
-import 'order_view.dart';
 import '../providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'dashboard_view.dart';
+import '../providers/auth_provider.dart';
+import '../views/pages/authentication/login.dart';
+import '../services/auth_service.dart';
+import 'pages/order/index.dart';
+
 
 class PageWidget extends StatefulWidget {
   const PageWidget({super.key});
@@ -30,6 +34,8 @@ class _PageWidgetState extends State<PageWidget> {
     'Orders',
   ];
 
+  final AuthService _authService = AuthService();
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -50,6 +56,33 @@ class _PageWidgetState extends State<PageWidget> {
             onPressed: () {
               themeProvider.toggleTheme();
             },
+          ),
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+              final token = authProvider.token;
+              if (token == null) return;
+
+              final success = await _authService.logout();
+
+              if (!mounted) return;
+
+              if (success) {
+                await authProvider.logout(); // clear local state + storage
+                navigator.pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              } else {
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(content: Text('Logout failed. Please try again.')),
+                );
+              }
+            }
           ),
         ],
       ),

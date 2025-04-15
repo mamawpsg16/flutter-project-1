@@ -11,14 +11,6 @@ class DashboardView extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     return Scaffold( // Wrap the body in a Scaffold
-      appBar: AppBar( // AppBar with similar theme to ProductView
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        title: const Text("Dashboard"),
-        actions: [
-          // You can add actions like a search button if necessary
-        ],
-      ),
       body: Container( // Container with gradient background
         decoration: BoxDecoration(
           gradient: LinearGradient(

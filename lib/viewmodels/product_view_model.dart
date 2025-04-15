@@ -8,9 +8,18 @@ class ProductViewModel extends ChangeNotifier {
   List<Product> _products = [];
   List<Product> get products => _products;
 
+  bool _isLoading = false; // Add loading state
+  bool get isLoading => _isLoading;
+
   Future<void> loadProducts() async {
+    _isLoading = true; // Set loading to true
+    notifyListeners(); // Notify listeners
+
     _products = await _repository.fetchAll();
-    notifyListeners();
+    print("Loaded ${_products.length} products");
+
+    _isLoading = false; // Set loading to false
+    notifyListeners(); // Notify listeners
   }
 
   Future<void> addProduct(Product product) async {
@@ -38,5 +47,4 @@ class ProductViewModel extends ChangeNotifier {
       }
     }
   }
-
 }

@@ -4,6 +4,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'tables/product_table.dart';
 import 'tables/user_table.dart';
+import 'tables/order_table.dart';
+import 'tables/order_detail_table.dart';
 
 class DatabaseHelper {
   static const String databaseName = "erp_app.db"; // Define database name
@@ -34,6 +36,8 @@ class DatabaseHelper {
   Future<void> _onCreate(Database db, int version) async {
     await ProductTable.createTable(db);
     await UserTable.createTable(db);
+    await OrderTable.createTable(db);
+    await OrderDetailTable.createTable(db);
     // You can add more table initializations here.
   }
 }

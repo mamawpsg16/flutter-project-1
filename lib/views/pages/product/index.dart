@@ -18,6 +18,7 @@ class _ProductViewState extends State<ProductView> {
     super.initState();
     // Load products when the screen is first created
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('Loading products... PRODUCT VIEW');
       Provider.of<ProductViewModel>(context, listen: false).loadProducts();
     });
   }
@@ -28,11 +29,6 @@ class _ProductViewState extends State<ProductView> {
     final productVM = Provider.of<ProductViewModel>(context); // 👈 Declare here
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        title: const Text("Products"),
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
