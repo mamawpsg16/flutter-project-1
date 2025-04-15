@@ -1,33 +1,51 @@
 class Order {
-  final int? id;         // Make id nullable as it's auto-generated
+  final int? id;
   final String customerName;
-  final double amount;
-  final DateTime? timestamp; // Add timestamp
+  final double totalAmount; // CHANGED from amount
+  final DateTime? createdAt; // CHANGED from timestamp
+  final DateTime? updatedAt;
 
   Order({
-    this.id,               // Make id optional
+    this.id,
     required this.customerName,
-    required this.amount,
-    this.timestamp,        // Make timestamp optional
+    required this.totalAmount, // CHANGED from amount
+    this.createdAt, // CHANGED from timestamp
+    this.updatedAt,
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = {
       'name': customerName,
-      'total_amount': amount,
-      'timestamp': timestamp?.toIso8601String(),  // Convert DateTime to String
+      'total_amount': totalAmount,
     };
+
+    // Only include id if it's not null
+    if (id != null) {
+      map['id'] = id as int;  // Explicit cast to non-nullable int
+    }
+
+    // Only include these if they're explicitly set
+    if (createdAt != null) {
+      map['created_at'] = createdAt!.toIso8601String();
+    }
+
+    if (updatedAt != null) {
+      map['updated_at'] = updatedAt!.toIso8601String();
+    }
+
+    return map;
   }
+
 
   factory Order.fromMap(Map<String, dynamic> map) {
     return Order(
       id: map['id'],
       customerName: map['name'],
-      amount: map['total_amount'],
-      timestamp: map['timestamp'] != null
-          ? DateTime.parse(map['timestamp'])  // Convert String to DateTime
+      totalAmount: map['total_amount'], // CHANGED from amount
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at']) // CHANGED from timestamp
           : null,
+      updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
     );
   }
 }

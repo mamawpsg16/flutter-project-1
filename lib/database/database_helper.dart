@@ -32,6 +32,13 @@ class DatabaseHelper {
       onCreate: _onCreate,
     );
   }
+
+  Future<void> resetDatabase() async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    String path = join(dir.path, databaseName);
+    await deleteDatabase(path);
+  }
+
   
   Future<void> _onCreate(Database db, int version) async {
     await ProductTable.createTable(db);

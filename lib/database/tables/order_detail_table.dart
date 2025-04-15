@@ -11,7 +11,8 @@ class OrderDetailTable {
   static const columnProductId = 'product_id';
   static const columnAmount = 'amount';
   static const columnQuantity = 'quantity';
-  static const columnTimestamp = 'timestamp';
+  static const columnCreatedAt = 'created_at';
+  static const columnUpdatedAt = 'updated_at';
 
   static Future<void> createTable(Database db) async {
     await db.execute('''
@@ -21,7 +22,8 @@ class OrderDetailTable {
         $columnProductId INTEGER NOT NULL,
         $columnAmount REAL NOT NULL,
         $columnQuantity INTEGER NOT NULL,
-        $columnTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        $columnCreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        $columnUpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY ($columnOrderId) REFERENCES ${OrderTable.tableName}(${OrderTable.columnId}),
         FOREIGN KEY ($columnProductId) REFERENCES ${ProductTable.tableName}(id)
       )

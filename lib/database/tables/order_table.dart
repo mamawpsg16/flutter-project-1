@@ -8,7 +8,8 @@ class OrderTable {
   static const columnId = 'id';
   static const columnName = 'name';
   static const columnTotalAmount = 'total_amount';
-  static const columnTimestamp = 'timestamp';
+  static const columnCreatedAt = 'created_at';
+  static const columnUpdatedAt = 'updated_at';
 
   static Future<void> createTable(Database db) async {
     await db.execute('''
@@ -16,7 +17,8 @@ class OrderTable {
         $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
         $columnName TEXT NOT NULL,
         $columnTotalAmount REAL NOT NULL,
-        $columnTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        $columnCreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        $columnUpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     ''');
   }
