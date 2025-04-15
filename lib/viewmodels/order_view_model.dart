@@ -40,9 +40,12 @@ class OrderViewModel extends ChangeNotifier {
       for (var product in productQuantities.keys) {
         final quantity = productQuantities[product]!;
         final amount = product.price ?? 0.0; // Get the product's price
+        print('Product Name: ${product.name}');
+
         final orderDetail = OrderDetail(
           orderId: orderId,
           productId: product.id!,
+          productName: product.name,
           amount: amount,
           quantity: quantity,
         );

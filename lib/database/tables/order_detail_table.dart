@@ -20,11 +20,13 @@ class OrderDetailTable {
         $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
         $columnOrderId INTEGER NOT NULL,
         $columnProductId INTEGER NOT NULL,
+        product_name TEXT NOT NULL,
         $columnAmount REAL NOT NULL,
         $columnQuantity INTEGER NOT NULL,
         $columnCreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         $columnUpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY ($columnOrderId) REFERENCES ${OrderTable.tableName}(${OrderTable.columnId}),
+        FOREIGN KEY ($columnOrderId) REFERENCES ${OrderTable
+            .tableName}(${OrderTable.columnId}),
         FOREIGN KEY ($columnProductId) REFERENCES ${ProductTable.tableName}(id)
       )
     ''');

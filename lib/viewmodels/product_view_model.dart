@@ -16,7 +16,6 @@ class ProductViewModel extends ChangeNotifier {
     notifyListeners(); // Notify listeners
 
     _products = await _repository.fetchAll();
-    print("Loaded ${_products.length} products");
 
     _isLoading = false; // Set loading to false
     notifyListeners(); // Notify listeners

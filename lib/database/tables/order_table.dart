@@ -2,6 +2,7 @@ import 'package:erp_application/models/order.dart';
 
 import '../database_helper.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:erp_application/models/order_detail.dart';
 
 class OrderTable {
   static const tableName = 'orders';
@@ -28,14 +29,40 @@ class OrderTable {
     return await db.insert(tableName, order.toMap());
   }
 
-  static Future<List<Order>>  getAll() async {
+  static Future<List<Order>> getAll() async {
     final db = await DatabaseHelper().database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      tableName,
-      orderBy: 'id DESC', // Order by id in descending order
-    );
-    return maps.map((e) => Order.fromMap(e)).toList();
+    
+    // First, get all orders
+    final List<Map<String, dynamic>> orderMaps = await db.query('orders', orderBy: 'id DESC');
+    
+    // Create a map to store orders by ID
+    Map<int, Order> orderMap = {};
+    
+    // Create Order objects
+    for (var map in orderMaps) {
+      int orderId = map['id'];
+      orderMap[orderId] = Order.fromMap(map);
+    }
+    
+    // Now get all order details and associate them with orders
+    final List<Map<String, dynamic>> detailMaps = await db.rawQuery('''
+      SELECT * FROM order_details
+      WHERE order_id IN (${orderMap.keys.join(',')})
+    ''');
+    
+    // Add order details to their corresponding orders
+    for (var map in detailMaps) {
+      int orderId = map['order_id'];
+      if (orderMap.containsKey(orderId)) {
+        var orderDetail = OrderDetail.fromMap(map);
+        orderMap[orderId]?.addOrderDetail(orderDetail);
+      }
+    }
+    
+    // Convert the order map to a list and return
+    return orderMap.values.toList();
   }
+
 
   static Future<int> update(Order product) async {
     final db = await DatabaseHelper().database;

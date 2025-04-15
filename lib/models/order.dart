@@ -1,9 +1,12 @@
+import 'order_detail.dart';
 class Order {
   final int? id;
   final String customerName;
   final double totalAmount; // CHANGED from amount
   final DateTime? createdAt; // CHANGED from timestamp
   final DateTime? updatedAt;
+  List<OrderDetail> orderDetails = []; 
+  
 
   Order({
     this.id,
@@ -43,9 +46,14 @@ class Order {
       customerName: map['name'],
       totalAmount: map['total_amount'], // CHANGED from amount
       createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at']) // CHANGED from timestamp
+          ? DateTime.parse(map['created_at']).toLocal().toLocal() // CHANGED from timestamp
           : null,
-      updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+      updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at']).toLocal() : null,
     );
+  }
+
+    // Method to add order details to the order
+  void addOrderDetail(OrderDetail detail) {
+    orderDetails.add(detail);
   }
 }

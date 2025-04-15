@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../viewmodels/order_view_model.dart';
 import '../../../viewmodels/product_view_model.dart';
 import '../../../models/product.dart';
+// Customer Name Input Widget
 
 class AddOrderScreen extends StatefulWidget {
   const AddOrderScreen({super.key});
@@ -14,7 +15,7 @@ class AddOrderScreen extends StatefulWidget {
 class _AddOrderScreenState extends State<AddOrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _customerController = TextEditingController();
-  final Map<Product, int> _productQuantities = {}; // Track product quantities
+  final Map<Product, int> _productQuantities = {};
 
   @override
   void dispose() {
@@ -25,7 +26,7 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   double calculateTotalAmount(List<Product> products) {
     double total = 0;
     for (var product in products) {
-      if (_productQuantities.containsKey(product)) {  // Use the product as key
+      if (_productQuantities.containsKey(product)) {
         total += (product.price ?? 0) * _productQuantities[product]!;
       }
     }
@@ -60,46 +61,29 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
             key: _formKey,
             child: Column(
               children: [
-                TextFormField(
-                  controller: _customerController,
-                  decoration: InputDecoration(
-                    labelText: "Customer Name",
-                    border: const OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                    ),
-                    labelStyle: TextStyle(color: colorScheme.onSurface),
-                  ),
-                  validator: (value) =>
-                      (value == null || value.isEmpty) ? "Enter customer name" : null,
+                CustomerNameInput(
+                  customerController: _customerController,
+                  colorScheme: colorScheme,
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? "Enter customer name"
+                      : null,
                 ),
                 const SizedBox(height: 16),
-                Text(
-                    'Total Amount: \$${totalAmount.toStringAsFixed(2)}'), // Display total amount
+                TotalAmountDisplay(totalAmount: totalAmount),
                 const SizedBox(height: 16),
                 const Text("Select Products and Quantities:"),
                 Expanded(
-                  child: productVM.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : productVM.products.isEmpty
-                          ? const Center(child: Text("No products available"))
-                          : ListView.separated(
-                              itemCount: productVM.products.length,
-                              separatorBuilder: (context, index) =>
-                                  Divider(color: colorScheme.outlineVariant),
-                              itemBuilder: (context, index) {
-                                final product = productVM.products[index];
-                                return ProductCounter(
-                                  product: product,
-                                  quantity: _productQuantities[product] ?? 0,
-                                  onQuantityChanged: (int quantity) {
-                                    setState(() {
-                                       _productQuantities[product] = quantity;
-                                    });
-                                  },
-                                );
-                              },
-                            ),
+                  child: ProductList(
+                    isLoading: productVM.isLoading,
+                    products: products,
+                    productQuantities: _productQuantities,
+                    onQuantityChanged: (product, quantity) {
+                      setState(() {
+                        _productQuantities[product] = quantity;
+                      });
+                    },
+                    colorScheme: colorScheme,
+                  ),
                 ),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.add),
@@ -107,12 +91,14 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                   ),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       final customerName = _customerController.text;
-                      await orderVM.addOrder( customerName, totalAmount, _productQuantities);
+                      await orderVM.addOrder(
+                          customerName, totalAmount, _productQuantities);
 
                       Navigator.pop(context); // Go back to the order list
                     }
@@ -156,7 +142,7 @@ class _ProductCounterState extends State<ProductCounter> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final bool isOutOfStock = widget.product.quantity == 0;
-    final int availableStock = widget.product.quantity ?? 0;  // Get available stock
+    final int availableStock = widget.product.quantity ?? 0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -217,12 +203,10 @@ class _ProductCounterState extends State<ProductCounter> {
                       ? null
                       : () {
                           setState(() {
-                            // ADD VALIDATION HERE
                             if (_quantity < availableStock) {
                               _quantity++;
                               widget.onQuantityChanged(_quantity);
                             } else {
-                              // Optionally, show a snackbar or dialog to inform the user
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Maximum quantity reached.'),
@@ -239,5 +223,90 @@ class _ProductCounterState extends State<ProductCounter> {
         ],
       ),
     );
+  }
+}
+
+class CustomerNameInput extends StatelessWidget {
+  final TextEditingController customerController;
+  final ColorScheme colorScheme;
+  final String? Function(String?)? validator;
+
+  const CustomerNameInput({
+    super.key,
+    required this.customerController,
+    required this.colorScheme,
+    required this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: customerController,
+      decoration: InputDecoration(
+        labelText: "Customer Name",
+        border: const OutlineInputBorder(),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+        ),
+        labelStyle: TextStyle(color: colorScheme.onSurface),
+      ),
+      validator: validator,
+    );
+  }
+}
+
+// Product List Widget
+class ProductList extends StatelessWidget {
+  final bool isLoading;
+  final List<Product> products;
+  final Map<Product, int> productQuantities;
+  final Function(Product, int) onQuantityChanged;
+  final ColorScheme colorScheme;
+
+  const ProductList({
+    super.key,
+    required this.isLoading,
+    required this.products,
+    required this.productQuantities,
+    required this.onQuantityChanged,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (products.isEmpty) {
+      return const Center(child: Text("No products available"));
+    } else {
+      return ListView.separated(
+        itemCount: products.length,
+        separatorBuilder: (context, index) =>
+            Divider(color: colorScheme.outlineVariant),
+        itemBuilder: (context, index) {
+          final product = products[index];
+          return ProductCounter(
+            product: product,
+            quantity: productQuantities[product] ?? 0,
+            onQuantityChanged: (int quantity) {
+              onQuantityChanged(product, quantity);
+            },
+          );
+        },
+      );
+    }
+  }
+}
+
+
+// Total Amount Display Widget
+class TotalAmountDisplay extends StatelessWidget {
+  final double totalAmount;
+
+  const TotalAmountDisplay({super.key, required this.totalAmount});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text('Total Amount: \$${totalAmount.toStringAsFixed(2)}');
   }
 }
