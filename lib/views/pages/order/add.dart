@@ -94,23 +94,40 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text("Create Order"),
+                  icon: const Icon(Icons.save),
+                  label: const Text("Save Order"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    minimumSize: const Size(double.infinity, 50),
                   ),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
+                      final hasSelectedProducts = _productQuantities.values.any((qty) => qty > 0);
+
+                      if (!hasSelectedProducts) {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar(); // ⛔ Hide existing
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Please select at least one product."),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        return;
+                      }
+
                       final customerName = _customerController.text;
                       await orderVM.addOrder(
-                          customerName, totalAmount, _productQuantities);
+                        customerName,
+                        totalAmount,
+                        _productQuantities,
+                      );
 
-                      Navigator.pop(context); // Go back to the order list
+                      Navigator.pop(context);
                     }
-                  },
+                  }
+
                 ),
               ],
             ),
@@ -215,6 +232,7 @@ class _ProductCounterState extends State<ProductCounter> {
                               _quantity++;
                               widget.onQuantityChanged(_quantity);
                             } else {
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar(); // 👈 Prevent stacking
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Maximum quantity reached.'),

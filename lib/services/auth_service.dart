@@ -37,22 +37,37 @@ class AuthService extends ApiService {
 
   // Login a user
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await request(
-      method: 'POST',
-      endpoint: '/login',
-      body: {
-        'email': email,
-        'password': password,
-      },
-      handleAuth: false, // Don't handle 401 for login requests
-    );
+    try {
+      print('Attempting login for email: $email');
+      final response = await request(
+        method: 'POST',
+        endpoint: '/login',
+        body: {
+          'email': email,
+          'password': password,
+        },
+        handleAuth: false,
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      await _storage.write(key: 'auth_token', value: data['access_token']);
-      return data;
-    } else {
-      throw Exception('Login failed: ${response.body}');
+      print('Login response status: ${response.statusCode}');
+      print('Login response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await _storage.write(key: 'auth_token', value: data['access_token']);
+        
+        if (data['user'] != null) {
+          await _storage.write(key: 'user_role', value: data['user']['role']?.toString() ?? 'user');
+          await _storage.write(key: 'user_is_active', value: data['user']['is_active']?.toString() ?? '1');
+        }
+        
+        return data;
+      } else {
+        throw Exception('Login failed with status ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      print('Exception during login: $e');
+      rethrow;
     }
   }
 

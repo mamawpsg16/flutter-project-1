@@ -25,7 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login(String email, String password) async {
     setState(() => _loginError = null);
 
-    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -34,26 +33,37 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final data = await _authService.login(email, password);
+      print('API Response: $data');
+      print('Token exists: ${data.containsKey('access_token')}');
+      print('User exists: ${data.containsKey('user')}');
+      
+      if (data.containsKey('user')) {
+        print('Role exists: ${data['user'].containsKey('role')}');
+        print('is_active exists: ${data['user'].containsKey('is_active')}');
+      }
 
       if (!mounted) return;
       Navigator.of(context).pop(); // Close loading dialog
-
+      
       if (data.containsKey('access_token')) {
         await Provider.of<AuthProvider>(context, listen: false)
-            .login(data['access_token']);
+          .login(
+            data['access_token'],
+            role: data['user']?['role'],
+            isActive: data['user']?['is_active'] == 1
+          );
 
         if (!mounted) return;
-
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const PageWidget()),
-          (route) => false, // This removes all previous routes
+          (route) => false,
         );
-        
       } else {
         setState(() => _loginError = 'Invalid response from server');
       }
     } catch (e) {
-      if (mounted) Navigator.of(context).pop(); // Ensure dialog is closed
+      print('Login error: $e');
+      if (mounted) Navigator.of(context).pop();
       setState(() => _loginError = 'Invalid credentials or server error');
     }
   }

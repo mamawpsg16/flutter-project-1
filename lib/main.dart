@@ -9,7 +9,7 @@ import 'providers/theme_provider.dart';
 import 'views/pages.dart';
 import 'views/pages/authentication/login.dart';
 import 'providers/auth_provider.dart';
-import 'views/pages/authentication/test.dart';
+
 void main() async {
   await dotenv.load();  // Load the .env file
   runApp(
@@ -28,6 +28,47 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  // Helper method to determine which screen to show based on auth state
+  Widget _buildHomeWidget(AuthProvider auth, BuildContext context) {
+    if (!auth.isAuthenticated) {
+      return const LoginScreen();
+    }
+    
+    if (!auth.isActive) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.account_circle, size: 72, color: Colors.grey),
+              const SizedBox(height: 16),
+              const Text(
+                'Account Inactive',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Your account is currently inactive.\nPlease contact an administrator.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () async {
+                  // Logout functionality
+                  await auth.logout();
+                  // No need for navigation as the consumer will rebuild
+                },
+                child: const Text('Logout'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    return const PageWidget();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +117,7 @@ class MyApp extends StatelessWidget {
               displayColor: Colors.white,
             ),
           ),
-          home: auth.isAuthenticated ? const PageWidget() : const LoginScreen(),
+          home: _buildHomeWidget(auth, context),
         );
       },
     );

@@ -5,7 +5,6 @@ import '../../../models/order.dart'; // Import the Order model
 import 'add.dart';
 import 'package:erp_application/helpers/formatter.dart' show formatDate, formatCurrency; // Import the formatter helper
 
-
 class EmptyOrderMessage extends StatelessWidget {
   const EmptyOrderMessage({super.key});
 
@@ -47,8 +46,7 @@ class OrderList extends StatelessWidget {
         ? const EmptyOrderMessage()
         : ListView.separated(
             itemCount: orders.length,
-            separatorBuilder: (_, __) =>
-                Divider(color: colorScheme.outlineVariant),
+            separatorBuilder: (_, __) => Divider(color: colorScheme.outlineVariant),
             itemBuilder: (context, index) {
               final order = orders[index];
               return OrderCard(order: order);
@@ -66,79 +64,147 @@ class OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order header: Customer name and date
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.shopping_cart, color: colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      order.customerName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                Text(order.createdAt != null ? formatDate(order.createdAt) : 'N/A'),
-              ],
+    return GestureDetector(
+      onLongPressStart: (details) async {
+        final selected = await showMenu<String>(
+          context: context,
+          position: RelativeRect.fromLTRB(
+            details.globalPosition.dx,
+            details.globalPosition.dy,
+            details.globalPosition.dx,
+            details.globalPosition.dy,
+          ),
+          items: [
+            const PopupMenuItem(
+              value: 'done',
+              child: SizedBox(
+                width: 120,
+                child: Text('Done'),
+              ),
             ),
-            const SizedBox(height: 8),
-            // Display the details of all products in the order
-            ...order.orderDetails.map((detail) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: colorScheme.secondary.withOpacity(0.1),
-                    borderRadius:
-                        BorderRadius.circular(8.0), // Optional: Add rounded corners
-                  ),
-                  padding: const EdgeInsets.all(
-                      8.0), // Add some padding inside the container
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          "${detail.productName ?? 'Unknown'}: ${detail.quantity} x ${formatCurrency(detail.amount)}",
-                          style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: 'Poppins'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-            const SizedBox(height: 8),
-            // Total Amount
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Text(
-                "Total Amount: ${formatCurrency(order.totalAmount)}",
-                style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15),
+            const PopupMenuItem(
+              value: 'ongoing',
+              child: SizedBox(
+                width: 120,
+                child: Text('Ongoing'),
               ),
             ),
           ],
+        );
+
+        if (selected == null) return;
+
+        // Show confirmation dialog
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Confirm Action'),
+            content: Text(
+              'Are you sure you want to mark this order as ${selected == 'done' ? 'Done' : 'Ongoing'}?'
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false), // Cancel
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true), // Confirm
+                child: const Text('Confirm'),
+              ),
+            ],
+          ),
+        );
+
+        if (confirm != true) return; // If not confirmed, exit
+
+        // TODO: Replace with your actual update logic
+        if (selected == 'done') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Order marked as Done')),
+          );
+        } else if (selected == 'ongoing') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Order marked as Ongoing')),
+          );
+        }
+      },
+
+
+      child: Card(
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Order header: Customer name and date
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.shopping_cart, color: colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        order.customerName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  Text(order.createdAt != null ? formatDate(order.createdAt) : 'N/A'),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Display the details of all products in the order
+              ...order.orderDetails.map((detail) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "${detail.productName ?? 'Unknown'}: ${detail.quantity} x ${formatCurrency(detail.amount)}",
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+              // Total Amount
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Text(
+                  "Total Amount: ${formatCurrency(order.totalAmount)}",
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
 class OrderView extends StatelessWidget {
   const OrderView({super.key});
 
