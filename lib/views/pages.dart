@@ -24,29 +24,29 @@ class _PageWidgetState extends State<PageWidget> {
   /// Helper to get pages, titles, and navigation items based on user role
   _NavigationData _getNavigationData(bool isAdmin) {
     final pages = [
-      OrderView(), // Everyone can see orders
       if (isAdmin) DashboardView(),
+      OrderView(), // Everyone can see orders
       if (isAdmin) ProductView(),
       if (isAdmin) UserView(),
     ];
 
     final titles = [
-      'Orders',
       if (isAdmin) 'Dashboard',
+      'Orders',
       if (isAdmin) 'Products',
       if (isAdmin) 'Employees',
     ];
 
     final navigationItems = [
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.shopping_cart),
-        label: 'Orders',
-      ),
       if (isAdmin)
         const BottomNavigationBarItem(
           icon: Icon(Icons.dashboard),
           label: 'Dashboard',
         ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.shopping_cart),
+        label: 'Orders',
+      ),
       if (isAdmin)
         const BottomNavigationBarItem(
           icon: Icon(Icons.inventory),
