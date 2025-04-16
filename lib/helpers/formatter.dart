@@ -5,11 +5,11 @@ String formatDate(DateTime? date, {String format = 'MMM d, yyyy h:mm a'}) {
   return DateFormat(format).format(date);
 }
 
-String formatCurrency(double amount, {String locale = 'en_PH', String symbol = '₱'}) {
+String formatCurrency(double? amount, {String locale = 'en_PH', String symbol = '₱'}) {
   final formatter = NumberFormat.currency(
     locale: locale,
     symbol: symbol,
     decimalDigits: 2,
   );
-  return formatter.format(amount);
+  return formatter.format(amount ?? 0.0); // Fallback to 0.0 if null
 }

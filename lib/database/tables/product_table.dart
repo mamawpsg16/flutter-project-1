@@ -21,15 +21,36 @@ class ProductTable {
     return await db.insert(tableName, product.toMap());
   }
 
-  static Future<List<Product>> getAll() async {
+  static Future<List<Product>> getAll({bool onlyAvailable = false}) async {
     final db = await DatabaseHelper().database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      tableName,
-      orderBy: 'id DESC', // Order by id in descending order
-    );
+     List<Map<String, dynamic>> maps;
+    if (onlyAvailable) {
+       maps = await db.query(
+        tableName,
+        where: 'quantity != ?',
+        whereArgs: [0],
+        orderBy: 'id DESC',
+      );
+    } else {
+       maps = await db.query(
+        tableName,
+        orderBy: 'id DESC',
+      );
+    }
+    
     return maps.map((e) => Product.fromMap(e)).toList();
   }
 
+  static Future<List<Product>> getAvailableProducts() async {
+    final db = await DatabaseHelper().database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'quantity != ?',
+      whereArgs: [0],
+      orderBy: 'id DESC',
+    );
+    return maps.map((e) => Product.fromMap(e)).toList();
+  }
 
   static Future<int> update(Product product) async {
     final db = await DatabaseHelper().database;
@@ -62,5 +83,7 @@ class ProductTable {
     }
     return null;
   }
+
+  
 
 }

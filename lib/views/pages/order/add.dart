@@ -17,6 +17,14 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   final _customerController = TextEditingController();
   final Map<Product, int> _productQuantities = {};
 
+   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProductViewModel>(context, listen: false).loadProducts(onlyAvailable: true);
+    });
+  }
+
   @override
   void dispose() {
     _customerController.dispose();
@@ -277,7 +285,7 @@ class ProductList extends StatelessWidget {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     } else if (products.isEmpty) {
-      return const Center(child: Text("No products available"));
+      return const Center(child: Text("No available products"));
     } else {
       return ListView.separated(
         itemCount: products.length,
@@ -297,7 +305,6 @@ class ProductList extends StatelessWidget {
     }
   }
 }
-
 
 // Total Amount Display Widget
 class TotalAmountDisplay extends StatelessWidget {

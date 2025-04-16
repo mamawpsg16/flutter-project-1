@@ -21,6 +21,20 @@ class Product {
     };
   }
 
+  Product copyWith({
+    int? id,
+    String? name,
+    int? quantity,
+    double? price,
+  }) {
+    return Product(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      quantity: quantity ?? this.quantity,
+      price: price ?? this.price,
+    );
+  }
+
   // Create a Product from a Map
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(

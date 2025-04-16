@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../viewmodels/product_view_model.dart';
 import '../../../models/product.dart';
 import 'add.dart';
+
 class EmptyProductMessage extends StatelessWidget {
   const EmptyProductMessage({super.key});
 
@@ -79,13 +80,26 @@ class ProductView extends StatefulWidget {
   State<ProductView> createState() => _ProductViewState();
 }
 
-class _ProductViewState extends State<ProductView> {
+class _ProductViewState extends State<ProductView> with TickerProviderStateMixin {
+  TabController? _tabController;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ProductViewModel>(context, listen: false).loadProducts();
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
+  }
+
+  List<Product> _filterProducts(List<Product> products, bool available) {
+    return products.where((product) => available ? product.quantity > 0 : product.quantity == 0).toList();
   }
 
   @override
@@ -93,7 +107,27 @@ class _ProductViewState extends State<ProductView> {
     final colorScheme = Theme.of(context).colorScheme;
     final productVM = Provider.of<ProductViewModel>(context);
 
+    // ✅ Ensure tab controller is initialized before building
+    if (_tabController == null) {
+      return const SizedBox(); // or a loading indicator
+    }
+
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(48.0), // Set to a smaller value if needed
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          title: null,
+          elevation: 0, // Optional: removes shadow
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: "Available"),
+              Tab(text: "Out of Stock"),
+            ],
+          ),
+        ),
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -105,25 +139,12 @@ class _ProductViewState extends State<ProductView> {
             ],
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: productVM.products.isEmpty
-                    ? const EmptyProductMessage()
-                    : ListView.separated(
-                        itemCount: productVM.products.length,
-                        separatorBuilder: (_, __) =>
-                            Divider(color: colorScheme.outlineVariant),
-                        itemBuilder: (context, index) {
-                          final product = productVM.products[index];
-                          return ProductCard(product: product);
-                        },
-                      ),
-              ),
-            ],
-          ),
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildProductList(context, _filterProducts(productVM.products, true)),
+            _buildProductList(context, _filterProducts(productVM.products, false)),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -135,8 +156,27 @@ class _ProductViewState extends State<ProductView> {
         },
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add_business),
       ),
+    );
+  }
+
+  Widget _buildProductList(BuildContext context, List<Product> products) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: products.isEmpty
+          ? const EmptyProductMessage()
+          : ListView.separated(
+              itemCount: products.length,
+              separatorBuilder: (_, __) =>
+                  Divider(color: colorScheme.outlineVariant),
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return ProductCard(product: product);
+              },
+            ),
     );
   }
 }

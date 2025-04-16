@@ -11,14 +11,14 @@ class ProductViewModel extends ChangeNotifier {
   bool _isLoading = false; // Add loading state
   bool get isLoading => _isLoading;
 
-  Future<void> loadProducts() async {
-    _isLoading = true; // Set loading to true
-    notifyListeners(); // Notify listeners
+  Future<void> loadProducts({bool onlyAvailable = false}) async {
+    _isLoading = true;
+    notifyListeners();
 
-    _products = await _repository.fetchAll();
+    _products = await _repository.fetchAll(onlyAvailable: onlyAvailable);
 
-    _isLoading = false; // Set loading to false
-    notifyListeners(); // Notify listeners
+    _isLoading = false;
+    notifyListeners();
   }
 
   Future<void> addProduct(Product product) async {

@@ -8,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../views/pages/authentication/login.dart';
 import '../services/auth_service.dart';
 import 'pages/order/index.dart';
+import 'package:erp_application/views/pages/user/profile.dart';
 
 
 class PageWidget extends StatefulWidget {
@@ -47,7 +48,7 @@ class _PageWidgetState extends State<PageWidget> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('ERP App'),
+        title: Text('Project 1'),
         actions: [
           IconButton(
             icon: Icon(
@@ -57,34 +58,97 @@ class _PageWidgetState extends State<PageWidget> {
               themeProvider.toggleTheme();
             },
           ),
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
-              final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-              final token = authProvider.token;
-              if (token == null) return;
-
-              final success = await _authService.logout();
-
-              if (!mounted) return;
-
-              if (success) {
-                await authProvider.logout(); // clear local state + storage
-                navigator.pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                  (Route<dynamic> route) => false,
+          PopupMenuButton<String>(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            icon: const Icon(Icons.account_circle),
+            onSelected: (value) async {
+              if (value == 'profile') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UserProfile()),
                 );
-              } else {
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(content: Text('Logout failed. Please try again.')),
+              } else if (value == 'logout') {
+                final shouldLogout = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    title: const Text('Confirm Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  ),
                 );
+
+                if (shouldLogout == true) {
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+                  final token = authProvider.token;
+                  if (token == null) return;
+
+                  final success = await _authService.logout();
+
+                  if (!mounted) return;
+
+                  if (success) {
+                    await authProvider.logout();
+                    navigator.pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      (Route<dynamic> route) => false,
+                    );
+                  } else {
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(content: Text('Logout failed. Please try again.')),
+                    );
+                  }
+                }
               }
-            }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'profile',
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.person, size: 20),
+                      SizedBox(width: 12),
+                      Text('Profile'),
+                    ],
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'logout',
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.logout, size: 20),
+                      SizedBox(width: 12),
+                      Text('Logout'),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
+
         ],
+
       ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(

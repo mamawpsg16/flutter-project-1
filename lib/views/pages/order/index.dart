@@ -179,7 +179,7 @@ class OrderView extends StatelessWidget {
         },
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.assignment_add),
       ),
     );
   }
